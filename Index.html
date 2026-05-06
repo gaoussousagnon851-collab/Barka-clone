@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barka Énergie - Officiel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --barka-green: #059669; --barka-blue: #2563eb; --app-bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--app-bg); margin: 0; }
+        .page { display: none; padding-bottom: 110px; animation: fadeIn 0.4s ease-out; }
+        .active { display: block !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Image d'accueil stylisée */
+        .hero-image {
+            width: 100%; height: 200px;
+            background: url('https://images.unsplash.com/photo-1509391366360-fe5bb5848e03?q=80&w=1000') center/cover;
+            border-radius: 0 0 40px 40px;
+        }
+
+        #loader {
+            display: none; position: fixed; inset: 0; background: white;
+            z-index: 10000; justify-content: center; align-items: center; flex-direction: column;
+        }
+
+        .bottom-nav {
+            background: #ffffff; border-top: 1px solid #e2e8f0;
+            padding: 12px 5px; display: flex; justify-content: space-around;
+        }
+        .nav-btn { color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 600; }
+        .nav-btn.active-link { color: #059669; }
+
+        .btn-barka {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white; font-weight: 800; border-radius: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-2"></div>
+    <p class="font-bold text-green-700">BARKA ÉNERGIE</p>
+</div>
+
+<div class="max-w-md mx-auto min-h-screen relative bg-[#f8fafc]">
+
+    <div id="register-page" class="page active">
+        <div class="hero-image mb-8"></div>
+        <div class="px-8 text-center mb-8">
+            <h1 class="text-3xl font-black text-emerald-700 uppercase">Barka Énergie</h1>
+            <p class="text-gray-500 text-sm">Le futur de l'énergie au Burkina Faso</p>
+        </div>
+
+        <div class="px-8 space-y-4">
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 flex items-center shadow-sm">
+                <span class="font-bold text-gray-400 mr-3">🇧🇫 +226</span>
+                <input id="reg-phone" type="tel" placeholder="Numéro de téléphone" class="flex-1 outline-none font-bold">
+            </div>
+
+            <div class="flex gap-2">
+                <div class="bg-white rounded-2xl p-4 border border-gray-100 flex-1 shadow-sm">
+                    <input id="reg-otp" type="text" placeholder="Code OTP" class="w-full outline-none font-bold">
+                </div>
+                <button onclick="sendOTP()" class="px-4 bg-gray-100 rounded-2xl text-xs font-bold text-gray-600">Obtenir</button>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 flex items-center shadow-sm">
+                <input id="reg-pass" type="password" placeholder="Mot de passe" class="flex-1 outline-none font-bold">
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 flex items-center shadow-sm">
+                <input id="reg-pass-confirm" type="password" placeholder="Confirmer mot de passe" class="flex-1 outline-none font-bold">
+            </div>
+
+            <div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex items-center">
+                <input id="reg-invite" type="text" placeholder="Code d'invitation" class="bg-transparent flex-1 outline-none font-bold text-emerald-800">
+            </div>
+
+            <button onclick="verifyAndRegister()" class="w-full btn-barka py-5 shadow-lg shadow-emerald-100 mt-4">S'INSCRIRE MAINTENANT</button>
+            <p onclick="showPage('login-page')" class="text-center text-sm font-bold text-gray-400 mt-6 cursor-pointer">Déjà membre ? <span class="text-emerald-600">Se connecter</span></p>
+        </div>
+    </div>
+
+    <div id="login-page" class="page pt-10 px-8">
+        <div class="text-center mb-10">
+            <h2 class="text-4xl font-black text-emerald-600">CONNEXION</h2>
+            <p class="text-gray-400 font-bold text-xs uppercase mt-2">Barka Énergie Portal</p>
+        </div>
+        <div class="space-y-4">
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 flex items-center">
+                <span class="font-bold text-gray-400 mr-3">🇧🇫 +226</span>
+                <input id="login-phone" type="tel" placeholder="Numéro" class="flex-1 outline-none font-bold">
+            </div>
+            <input id="login-pass" type="password" placeholder="Mot de passe" class="w-full p-4 bg-white rounded-2xl border border-gray-100 outline-none font-bold shadow-sm">
+            <button onclick="handleAuth('login')" class="w-full btn-barka py-5 shadow-xl mt-4">ACCÉDER À MON COMPTE</button>
+            <p onclick="showPage('register-page')" class="text-center text-sm font-bold text-gray-400 mt-6 cursor-pointer">Créer un nouveau compte</p>
+        </div>
+    </div>
+
+    <div id="home-page" class="page px-5 pt-4">
+        <div class="bg-emerald-700 rounded-3xl p-6 text-white mb-6 relative overflow-hidden shadow-xl">
+            <div class="relative z-10">
+                <p class="text-xs opacity-70 font-bold uppercase">Solde Barka Énergie</p>
+                <h2 class="text-4xl font-black mt-1"><span class="solde-val">0</span> <span class="text-sm">XOF</span></h2>
+            </div>
+            <i class="fas fa-bolt absolute -right-5 -bottom-5 text-8xl text-white/10"></i>
+        </div>
+        <h3 class="font-black text-gray-800 mb-4">Nos Solutions Énergétiques</h3>
+        <div id="product-list" class="grid grid-cols-2 gap-4"></div>
+    </div>
+
+    <nav id="main-nav" class="fixed bottom-0 w-full max-w-md z-50 hidden">
+        <div class="bottom-nav">
+            <button onclick="showPage('home-page')" class="nav-btn active-link">
+                <i class="fas fa-solar-panel text-xl mb-1"></i>
+                <span>Accueil</span>
+            </button>
+            <button onclick="showPage('home-page')" class="nav-btn">
+                <i class="fas fa-wallet text-xl mb-1"></i>
+                <span>Portefeuille</span>
+            </button>
+            <button onclick="showPage('home-page')" class="nav-btn">
+                <i class="fas fa-users text-xl mb-1"></i>
+                <span>Équipe</span>
+            </button>
+            <button onclick="logout()" class="nav-btn">
+                <i class="fas fa-power-off text-xl mb-1"></i>
+                <span>Quitter</span>
+            </button>
+        </div>
+    </nav>
+
+</div>
+
+<script>
+    // Config Supabase (Garde tes clés actuelles)
+    const _URL = "https://ciamfmmmznshnmmtxntf.supabase.co";
+    const _KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpYW1mbW1tem5zaG5tbXR4bnRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NDYwNjgsImV4cCI6MjA5MTIyMjA2OH0.er_YZ2Mg-fwwXLPkS20eli1hO8eCfd8DReOferSBw3M";
+    const supabaseClient = supabase.createClient(_URL, _KEY);
+
+    let generatedOTP = null;
+
+    // --- SYSTÈME OTP ---
+    function sendOTP() {
+        const phone = document.getElementById('reg-phone').value;
+        if(phone.length < 8) return alert("Numéro incorrect");
+        
+        // Génération d'un code à 4 chiffres
+        generatedOTP = Math.floor(1000 + Math.random() * 9000);
+        alert("Barka Énergie : Votre code de vérification est " + generatedOTP);
+    }
+
+    async function verifyAndRegister() {
+        const phone = document.getElementById('reg-phone').value;
+        const otpInput = document.getElementById('reg-otp').value;
+        const pass = document.getElementById('reg-pass').value;
+        const passConfirm = document.getElementById('reg-pass-confirm').value;
+
+        if(!generatedOTP || otpInput != generatedOTP) return alert("Code OTP invalide");
+        if(pass !== passConfirm) return alert("Les mots de passe ne correspondent pas");
+        if(pass.length < 6) return alert("Mot de passe trop court (min 6)");
+
+        handleAuth('register');
+    }
+
+    // --- LE RESTE DES FONCTIONS (MODIFIÉES) ---
+    async function handleAuth(type) {
+        document.getElementById('loader').style.display = 'flex';
+        const rawPhone = type === 'register' ? document.getElementById('reg-phone').value : document.getElementById('login-phone').value;
+        const phone = "+226" + rawPhone;
+        const pass = type === 'register' ? document.getElementById('reg-pass').value : document.getElementById('login-pass').value;
+        
+        if(type === 'register') {
+            const myCode = "BK-" + Math.random().toString(36).substring(7).toUpperCase();
+            const newUser = { 
+                phone_number_code: phone, 
+                password: pass, 
+                balance: 200, 
+                inviteCode: myCode,
+                role: 'membre', 
+                statut: 'actif'
+            };
+            const { error } = await supabaseClient.from('utilisateurs').insert([newUser]);
+            if(error) alert("Erreur: " + error.message);
+            else { alert("Bienvenue chez Barka Énergie ! Bonus 200F offert."); showPage('login-page'); }
+        } else {
+            const { data: user, error } = await supabaseClient.from('utilisateurs').select('*').eq('phone_number_code', phone).eq('password', pass).single();
+            if(!user) alert("Identifiants incorrects");
+            else { location.reload(); /* Connexion persistante ici */ }
+        }
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id !== 'register-page' && id !== 'login-page') {
+            document.getElementById('main-nav').classList.remove('hidden');
+        }
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+</script>
+</body>
+  </html>
