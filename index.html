@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barka Énergie</title>
+
+<style>
+/* Conservation de tes styles existants */
+body{margin:0;font-family:Arial;background:#f4f7f9;color:#333;} 
+
+/* NOUVEAU STYLE AUTHENTIFICATION (Design Barka Énergie) */
+#auth {
+    text-align: center;
+    padding: 20px 20px;
+    height: 100vh;
+    background-color: #0f172a; 
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.auth-banner {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 20px;
+}
+
+#auth h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    font-weight: normal;
+}
+
+.input-field {
+    margin: 8px 0;
+    padding: 14px;
+    width: 90%;
+    background: transparent;
+    border: 1.5px solid #00d2ff; 
+    border-radius: 10px;
+    color: white;
+    outline: none;
+}
+
+.input-field::placeholder {
+    color: #94a3b8;
+}
+
+.phone-container {
+    display: flex;
+    width: 90%;
+    border: 1.5px solid #00d2ff;
+    border-radius: 10px;
+    margin: 8px 0;
+    align-items: center;
+    padding-left: 10px;
+}
+
+.phone-container select {
+    background: transparent;
+    color: white;
+    border: none;
+    width: auto;
+    padding: 10px 5px;
+    font-weight: bold;
+    outline: none;
+}
+
+.phone-container select option {
+    background: #0f172a;
+}
+
+.phone-container input {
+    border: none;
+    margin: 0;
+    width: 100%;
+}
+
+.btn-barka {
+    width: 90%;
+    padding: 15px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #57e0cc, #7a5dfa);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#app{display:none;padding-bottom:80px; background:#0b1426; min-height:100vh;}
+.page{display:none;padding:15px;}
+.active{display:block;}
+
+.nav{position:fixed;bottom:0;width:100%;display:flex;justify-content:space-around;background:#1a222d;padding:10px 0;z-index:1000;}
+.nav button{background:none;color:#fff;width:auto;font-size:12px;display:flex;flex-direction:column;align-items:center; border:none;}
+
+.card{background:#1e293b;color:#fff;padding:15px;border-radius:20px;margin:15px 0;box-shadow:0 4px 10px rgba(0,0,0,0.3);border:none;}
+.card img{width:100%;border-radius:15px;height:180px;object-fit:cover;}
+
+.header-emirates {display:flex; justify-content:space-between; align-items:center; padding:10px; background:#0b1426; color:#fff; font-weight:bold;}
+.user-badge {background:#1e293b; color:#57e0cc; padding:5px 12px; border-radius:15px; font-size:14px;}
+.banner-img {width:100%; border-radius:25px; margin-top:10px; height: 180px; object-fit: cover; background: #1e293b;}
+.balance-section {background:#1e293b; border-radius:25px; padding:25px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.2); color: white;}
+.balance-section p {margin:0; color:#94a3b8; font-size:13px; font-weight:bold;}
+.balance-section h1 {margin:5px 0 0 0; font-size:32px; color:#fff;}
+
+.grid-actions-circular {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 25px;
+    text-align: center;
+}
+
+.action-circle-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 11px;
+}
+
+.icon-circle {
+    width: 55px;
+    height: 55px;
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+}
+
+.services-grid-square {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.service-card-square {
+    background-color: #1e293b;
+    padding: 20px 5px;
+    border-radius: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 11px;
+}
+
+.service-card-square span { font-weight: 500; }
+
+.section-title {color:#fff; font-size:18px; font-weight:bold; margin-top:25px; margin-left:5px;}
+
+#installBtn{display:none;position:fixed;top:10px;right:10px;z-index:999;}
+
+.profile-card { background: white; border-radius: 25px; padding: 30px; text-align: center; margin-bottom: 20px; color: #333;}
+.profile-avatar { background: #d4a437; width: 80px; height: 80px; border-radius: 20px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; position: relative;}
+.check-mark { position: absolute; bottom: -5px; right: -5px; background: #2ecc71; border: 2px solid white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.action-grid { display: flex; gap: 15px; margin: 20px 0; }
+.btn-gold { background: #d4a437 !important; color: white !important; flex: 1; border-radius: 15px !important; margin: 0 !important; border:none; padding:15px;}
+.btn-dark { background: #1a1a1a !important; color: white !important; flex: 1; border-radius: 15px !important; margin: 0 !important; border:none; padding:15px;}
+.menu-container { background: white; border-radius: 20px; overflow: hidden; color: #333;}
+.menu-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f4f4f4; cursor: pointer; }
+.menu-row:last-child { border-bottom: none; }
+.menu-info { display: flex; align-items: center; gap: 15px; }
+.logout-box { margin-top: 30px; }
+.btn-logout-new { background: #fff5f5 !important; color: #ff4d4d !important; width: 100% !important; border-radius: 15px !important; border:none; padding:15px;}
+
+.invite-banner {
+    background: linear-gradient(90deg, #5c27fe, #f9844a);
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.btn-buy {width:100%; margin-top:10px; background: linear-gradient(90deg, #57e0cc, #7a5dfa); border:none; color:white; padding:12px; border-radius:10px; font-weight:bold;}
+
+.promo-card { border: 2px solid #f9844a !important; }
+
+.order-info { margin-top: 10px; font-size: 12px; color: #94a3b8; }
+.order-info b { color: #57e0cc; }
+
+.team-summary-new {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0;
+    color: white;
+}
+.summary-box { text-align: center; }
+.summary-box span { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 5px; }
+.summary-box h2 { margin: 0; font-size: 20px; color: #ff6b6b; }
+
+.level-card-new {
+    background: #1e293b;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.level-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.stat-mini-box {
+    background: #2d3748;
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+}
+.stat-mini-box label { font-size: 12px; color: #94a3b8; display: block; }
+.stat-mini-box span { font-size: 16px; font-weight: bold; color: white; }
+.stat-mini-box .price-red { color: #ff6b6b; }
+
+.level-footer {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+}
+.icon-fire { font-size: 18px; margin-right: 8px; }
+.invite-top-box {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+.invite-top-box p { color: #94a3b8; font-size: 12px; margin: 0 0 10px 0; }
+.copy-wrapper {
+    display: flex;
+    background: #0b1426;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.copy-wrapper input {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 10px;
+    flex: 1;
+    font-size: 12px;
+    outline: none;
+}
+.copy-wrapper button {
+    background: #7a5dfa;
+    border: none;
+    color: white;
+    padding: 0 15px;
+    font-weight: bold;
+}
+
+/* STYLES SPÉCIFIQUES AUX COMPTES ET RETRAITS */
+.page-withdraw { background: #f4f7f9; min-height: 100vh; padding: 20px; color: #333; }
+.withdraw-header { display: flex; align-items: center; margin-bottom: 30px; font-weight: bold; font-size: 18px; }
+.withdraw-header span { flex: 1; text-align: center; margin-right: 20px; }
+.solde-label { font-size: 13px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;}
+.solde-val { color: #ff6b6b; font-size: 28px; font-weight: bold; text-align: center; margin-bottom: 20px;}
+.withdraw-input-box { background: #fff; border: 1px solid #ff6b6b; border-radius: 10px; padding: 15px; display: flex; align-items: center; margin-bottom: 5px;}
+.withdraw-input-box input { border: none; outline: none; flex: 1; font-size: 20px; text-align: right; color: #ff6b6b; font-weight: bold;}
+.withdraw-input-box span { color: #ff6b6b; margin-left: 10px; font-weight: bold;}
+.sub-info { font-size: 12px; color: #888; text-align: center; margin-bottom: 25px;}
+.select-bank-btn { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 25px;}
+.instr-card { background: #fff; border-radius: 15px; padding: 20px; font-size: 13px; line-height: 1.6; color: #444;}
+.instr-card b { color: #ff6b6b; }
+.btn-submit-withdraw { background: #ffb800; color: white; border: none; width: 100%; padding: 15px; border-radius: 30px; font-weight: bold; font-size: 16px; margin-top: 30px; cursor: pointer;}
+
+.account-item-card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.account-item-main { display: flex; justify-content: space-between; font-weight: bold; font-size: 16px;}
+.account-item-footer { display: flex; border-top: 1px dashed #eee; padding-top: 10px; margin-top: 5px;}
+.account-item-footer button { flex: 1; background: none; border: none; color: #888; cursor: pointer; font-size: 14px;}
+
+.add-account-input { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; width: 100%; margin-bottom: 15px; box-sizing: border-box; outline: none; font-size: 15px;}
+.add-account-select { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; width: 100%; margin-bottom: 15px; outline: none; appearance: none;}
+
+</style>
+</head>
+
+<body>
+
+<button id="installBtn">Installer l'app</button>
+
+<div id="auth">
+    <img src="https://raw.githubusercontent.com/gaoussousagnon851-collab/Barka-clone/main/IMG-20260506-WA0003.jpg" class="auth-banner">
+
+    <h2 id="auth-title">Créer<br>Nouveau Compte</h2>
+    
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+        <div style="width:40px; height:30px; background:linear-gradient(to right, #4cc9f0 33%, #008000 33%, #008000 66%, #ffd700 66%); border-radius:10px 0 0 10px;"></div>
+        <span style="font-size:24px; font-weight:bold;">Barka Énergie</span>
+    </div>
+
+    <div class="phone-container">
+        <select id="country">
+            <option value="+226">🇧🇫 +226</option>
+            <option value="+228">🇹🇬 +228</option>
+        </select>
+        <input id="phone" class="input-field" style="border:none;" placeholder="Numéro Téléphone">
+    </div>
+
+    <input id="pass" type="password" class="input-field" placeholder="Veuillez entrer le mot de passe">
+    
+    <input id="confirm-pass" type="password" class="input-field" placeholder="Confirmer le mot de passe">
+    
+    <input id="ref" class="input-field" placeholder="Veuillez entrer le code d'invitation">
+    
+    <button id="auth-btn" class="btn-barka" onclick="register()">Inscription</button>
+    
+    <p id="toggle-text" style="margin-top:20px; color:#94a3b8; font-size:14px;">
+        Vous avez déjà un compte ? / <span style="color:#00d2ff; cursor:pointer;" onclick="showLogin()">Connexion</span>
+    </p>
+</div>
+<div id="app">
+    <div class="header-emirates">
+        <span>BARKA ÉNERGIE</span>
+        <span class="user-badge" id="displayId">ID</span>
+    </div>
+
+    <div id="home" class="page active"></div>
+    <div id="orders" class="page"></div>
+    <div id="team" class="page"></div>
+    <div id="me" class="page"></div>
+    
+    <div id="exchange_page" class="page" style="background: #fff; text-align: center; min-height: 100vh; padding-top: 50px;">
+        <div style="display: flex; align-items: center; padding: 10px;">
+            <span onclick="show('me')" style="cursor:pointer; font-size: 24px;">←</span>
+            <span style="flex:1; font-weight: bold; color: #333;">Échanger Code</span>
+        </div>
+        
+        <img src="https://raw.githubusercontent.com/gaoussousagnon851-collab/Barka-clone/main/IMG-20260506-WA0003.jpg" style="width: 80%; margin: 20px auto; border-radius: 15px;">
+        
+        <div style="padding: 20px;">
+            <input type="text" id="promo_input" placeholder="Veuillez saisir le code d'échange" 
+                style="width: 90%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 20px; outline: none; font-size: 16px;">
+            
+            <button onclick="validatePromoCode()" 
+                style="width: 95%; padding: 15px; border: none; border-radius: 30px; background: linear-gradient(to right, #fdbb2d, #f2994a); color: white; font-weight: bold; font-size: 18px; cursor: pointer;">
+                Confirmer
+            </button>
+        </div>
+    </div>
+    
+    <div id="withdraw_page" class="page page-withdraw"></div>
+    <div id="accounts_list_page" class="page page-withdraw"></div>
+    <div id="add_account_page" class="page page-withdraw"></div>
+
+    <div class="nav">
+        <button onclick="show('home')">🏠<br>Accueil</button>
+        <button onclick="show('orders')">🚀<br>Investir</button>
+        <button onclick="show('team')">👥<br>Réseau</button>
+        <button onclick="show('me')">⚙️<br>Réglages</button>
+    </div>
+</div>
+
+<script>
+// --- TES VARIABLES EXISTANTES ---
+let auth = document.getElementById("auth");
+let app = document.getElementById("app");
+let home = document.getElementById("home");
+let team = document.getElementById("team");
+let ordersPage = document.getElementById("orders");
+let mePage = document.getElementById("me");
+let withdrawPage = document.getElementById("withdraw_page");
+let accountsListPage = document.getElementById("accounts_list_page");
+let addAccountPage = document.getElementById("add_account_page");
+
+let users=JSON.parse(localStorage.getItem("users"))||[];
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+let transactions=JSON.parse(localStorage.getItem("tx"))||[];
+let bankAccounts = JSON.parse(localStorage.getItem("bank_accounts")) || [];
+let selectedAccount = null; 
+let user=null;
+
+const GITHUB_BASE = "https://raw.githubusercontent.com/gaoussousagnon851-collab/Barka-clone/main/";
+
+// --- LISTE DES CODES PROMO (200, 100, 50) ---
+const PROMO_CODES = {
+    "BK200A": 200, "BK200B": 200, "BK200C": 200,
+    "BK100A": 100, "BK100B": 100, "BK100C": 100, "BK100D": 100,
+    "BK50A": 50, "BK50B": 50, "BK50C": 50, "BK50D": 50, "BK50E": 50
+};
+
+// --- LOGIQUE D'ÉCHANGE ---
+function validatePromoCode() {
+    let input = document.getElementById("promo_input").value.trim().toUpperCase();
+    
+    // Initialiser la liste des codes utilisés si elle n'existe pas
+    if (!user.usedCodes) user.usedCodes = [];
+
+    if (user.usedCodes.includes(input)) {
+        alert("Vous avez déjà utilisé ce code !");
+        return;
+    }
+
+    if (PROMO_CODES[input]) {
+        let gain = PROMO_CODES[input];
+        user.balance += gain;
+        user.usedCodes.push(input); // Marquer comme utilisé pour cet utilisateur
+        
+        transactions.push({
+            user_id: user.id,
+            type: "Code Promo",
+            amount: gain,
+            date: new Date().toLocaleString()
+        });
+
+        save();
+        renderAll();
+        alert("Félicitations ! " + gain + " FCFA ajoutés à votre solde.");
+        document.getElementById("promo_input").value = "";
+        show('me');
+    } else {
+        alert("Code invalide ou expiré.");
+    }
+}
+
+// --- FONCTIONS DE NAVIGATION (MODIFIÉE POUR INCLURE ÉCHANGE) ---
+function show(p){
+    document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));
+    document.getElementById(p).classList.add("active");
+    if(p==="home")renderHome();
+    if(p==="orders")renderOrders();
+    if(p==="team")renderTeam();
+    if(p==="me")renderMe();
+    if(p==="withdraw_page")renderWithdraw();
+    if(p==="accounts_list_page")renderAccountsList();
+    if(p==="add_account_page")renderAddAccount();
+}
+
+// --- RENDU DE LA PAGE ME (MODIFIÉ POUR LIER LE BOUTON ÉCHANGE) ---
+function renderMe(){
+mePage.innerHTML=`
+    <div class="profile-card">
+        <div class="profile-avatar">👤<div class="check-mark">✓</div></div>
+        <h2 style="margin:5px 0;">${user.phone}</h2>
+        <p style="color:#888; font-size:14px;">Membre Barka Premium</p>
+        <p style="font-size:12px; color:#333;">Mon code: <b>${user.code}</b></p>
+    </div>
+    <div class="action-grid">
+        <button class="btn-gold" onclick="deposit()">✚ DÉPÔT</button>
+        <button class="btn-dark" onclick="show('withdraw_page')">↓ RETRAIT</button>
+    </div>
+
+    <div class="menu-container">
+        <div class="menu-row" onclick="alert('Moments Inspirants Barka')">
+            <div class="menu-info"><span>✨</span> Moments Inspirants</div>
+            <span style="color:#ccc;">›</span>
+        </div>
+        <div class="menu-row" onclick="show('team')">
+            <div class="menu-info"><span>👥</span> Mon équipe</div>
+            <span style="color:#ccc;">›</span>
+        </div>
+        <div class="menu-row" onclick="show('orders')">
+            <div class="menu-info"><span>📦</span> Mon Produit</div>
+            <span style="color:#ccc;">›</span>
+        </div>
+        <div class="menu-row" onclick="show('exchange_page')">
+            <div class="menu-info"><span>🎁</span> Échanger Récompense</div>
+            <span style="color:#ccc;">›</span>
+        </div>
+        <div class="menu-row" onclick="show('accounts_list_page')">
+            <div class="menu-info"><span>📱</span> Argent Mobile</div>
+            <span style="color:#ccc;">›</span>
+        </div>
+        <div class="menu-row" onclick="prompt('Votre adresse de résidence')">
+            <div class="menu-info"><span>📍</span> Mon Adresse</div>
+            <span style="color:#ccc;">›</span>
+        </div>
+        <div class="menu-row" onclick="alert('Paramètres du compte')">
+            <div class="menu-info"><span>⚙️</span> Paramètres</div>
+            <span style="color:#ccc;">›</span>
+        </div>
+    </div>
+    <div class="logout-box">
+        <button class="btn-logout-new" onclick="logout()">⏻ Se déconnecter</button>
+    </div>
+`;
+}
+
+// ... (Garde toutes les autres fonctions : renderHome, register, login, withdraw, etc. sans rien changer) ...
+// Assure-toi juste que la fonction renderHome() a bien l'appel vers show('exchange_page') pour l'icône "Échanger" de l'accueil.
+
+function renderHome(){
+home.innerHTML=`
+    <div style="text-align:center;">
+        <img src="${GITHUB_BASE}IMG-20260506-WA0003.jpg" class="banner-img" style="object-fit:contain; background:#1e293b;">
+    </div>
+
+    <div class="balance-section">
+        <p>SOLDE BARKA ÉNERGIE</p>
+        <h1>${user.balance} XOF</h1>
+    </div>
+
+    <div class="grid-actions-circular">
+        <div class="action-circle-item" onclick="show('orders')">
+            <div class="icon-circle">📦</div>
+            <span>Mon Produit</span>
+        </div>
+        <div class="action-circle-item" onclick="deposit()">
+            <div class="icon-circle">🕒</div>
+            <span>Recharger</span>
+        </div>
+        <div class="action-circle-item" onclick="show('withdraw_page')">
+            <div class="icon-circle">📥</div>
+            <span>Retrait</span>
+        </div>
+        <div class="action-circle-item" onclick="show('team')">
+            <div class="icon-circle">👥</div>
+            <span>Mon équipe</span>
+        </div>
+    </div>
+
+    <div class="services-grid-square">
+        <div class="service-card-square" onclick="alert('Support Client Barka en ligne')">
+            <span>🎧</span>
+            <span>Service</span>
+        </div>
+        <div class="service-card-square" onclick="show('team')">
+            <span>✉️</span>
+            <span>Inviter Des Amis</span>
+        </div>
+        <div class="service-card-square" onclick="show('exchange_page')">
+            <span>🔄</span>
+            <span>Échanger</span>
+        </div>
+    </div>
+
+    <div class="section-title">💎 BARKA VIP (30 JOURS)</div>
+`;
+
+// ... (Reste de renderHome pour les VIPs)
+barkaVips.forEach((p,i)=>{
+home.innerHTML+=`
+<div class="card">
+<img src="${p.img}">
+<div style="padding:5px;">
+    <h3 style="margin:10px 0;">${p.name}</h3>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; font-size:13px; color:#94a3b8;"><p>Prix: <b style="color:#fff;">${p.price} F</b></p>
+        <p>Durée: <b style="color:#fff;">${p.duration}j</b></p>
+        <p>Total: <b style="color:#fff;">${p.total} F</b></p>
+        <p>Jour: <b style="color:#fff;">${p.daily} F</b></p>
+    </div>
+    <button class="btn-buy" onclick="buy(${i})">Activer l'investissement</button>
+</div>
+</div>`;
+});
+// (Garde aussi la partie promoVips de ton code original ici)
+}
+
+// ... (Remets ici toutes tes autres fonctions : buy, claim, renderTeam, renderWithdraw, save, etc.)
+function save(){
+localStorage.setItem("users",JSON.stringify(users));
+localStorage.setItem("orders",JSON.stringify(orders));
+localStorage.setItem("tx",JSON.stringify(transactions));
+}
+function renderAll(){renderHome();renderOrders();renderTeam();renderMe();}
+function logout(){location.reload();}
+</script>
+</body>
+</html>
