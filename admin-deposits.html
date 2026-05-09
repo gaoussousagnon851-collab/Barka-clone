@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Liste des dépôts</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 10px; font-size: 13px; }
+        h3 { margin-bottom: 10px; }
+        #searchInput { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        .status-attente { color: #cc7a00; font-weight: bold; } /* Orange */
+        .status-valide { color: #28a745; font-weight: bold; }  /* Vert */
+        .status-rejete { color: #dc3545; font-weight: bold; }  /* Rouge */
+        .btn-action { background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0 5px; font-size: 12px; }
+        .btn-valider { color: #28a745; }
+        .btn-rejeter { color: #dc3545; }
+        tr:nth-child(even) { background-color: #fdfdfd; }
+    </style>
+</head>
+<body>
+
+    <h3>Liste des dépôts</h3>
+    <input type="text" id="searchInput" onkeyup="filtrerTableau()" placeholder="Rechercher numéro, référence ou montant...">
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Numéro</th>
+                <th>Montant</th>
+                <th>Référence</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <!-- Les lignes s'ajouteront ici -->
+        </tbody>
+    </table>
+
+    <script>
+        // --- CONFIGURATION SUPABASE ---
+        const SUPABASE_URL = 'VOTRE_URL_SUPABASE';
+        const SUPABASE_KEY = 'VOTRE_CLE_ANON_SUPABASE';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 1. Charger les dépôts au démarrage
+        async function chargerDepots() {
+            const { data: depots, error } = await supabase
+                .from('depots')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) console.error("Erreur chargement:", error);
+            
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            depots.forEach(depot => ajouterLigne(depot));
+        }
+
+        // 2. Ajouter une ligne au tableau
+        function ajouterLigne(depot, position = "fin") {
+            const tbody = document.getElementById('table-body');
+            const row = document.createElement('tr');
+            row.id = `row-${depot.id}`;
+
+            let classeStatut = "status-attente";
+            if(depot.statut === 'Validé') classeStatut = "status-valide";
+            if(depot.statut === 'Rejeté') classeStatut = "status-rejete";
+
+            row.innerHTML = `
+                <td>${depot.id.toString().substring(0, 4)}</td>
+                <td>${depot.phone_utilisateur}</td>
+                <td>${parseFloat(depot.montant).toFixed(1)}</td>
+                <td>${depot.id_transaction || 'None'}</td>
+                <td>${new Date(depot.created_at).toLocaleString('fr-FR')}</td>
+                <td class="${classeStatut}">${depot.statut}</td>
+                <td>
+                    <button class="btn-action btn-valider" onclick="traiter('${depot.id}', 'Validé', '${depot.phone_utilisateur}', ${depot.montant})">Valider</button>
+                    <button class="btn-action btn-rejeter" onclick="traiter('${depot.id}', 'Rejeté')">Rejeter</button>
+                </td>
+            `;
+
+            if(position === "debut") tbody.prepend(row);
+            else tbody.appendChild(row);
+        }
+
+        // 3. Valider ou Rejeter un dépôt
+        async function traiter(id, nouveauStatut, phone = null, montant = 0) {
+            if (!confirm(`Passer ce dépôt en "${nouveauStatut}" ?`)) return;
+
+            if (nouveauStatut === 'Validé') {
+                // Récupérer le solde actuel et ajouter
+                const { data: user } = await supabase.from('utilisateurs').select('solde').eq('phone', phone).single();
+                await supabase.from('utilisateurs').update({ solde: (user.solde + montant) }).eq('phone', phone);
+            }
+
+            const { error } = await supabase.from('depots').update({ statut: nouveauStatut }).eq('id', id);
+            if (error) alert("Erreur: " + error.message);
+            else chargerDepots(); // Rafraîchir pour mettre à jour les couleurs
+        }
+
+        // 4. TEMPS RÉEL : Écouter les nouveaux dépôts
+        supabase.channel('admin-realtime')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'depots' }, payload => {
+                ajouterLigne(payload.new, "debut");
+                alert("🔔 Nouveau dépôt reçu !");
+            })
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'depots' }, payload => {
+                chargerDepots(); // Rafraîchir si une ligne est modifiée ailleurs
+            })
+            .subscribe();
+
+        // 5. Filtre de recherche (comme sur ta photo)
+        function filtrerTableau() {
+            let input = document.getElementById("searchInput").value.toUpperCase();
+            let rows = document.getElementById("table-body").getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].style.display = rows[i].innerText.toUpperCase().includes(input) ? "" : "none";
+            }
+        }
+
+        chargerDepots();
+    </script>
+</body>
+</html>
