@@ -6,31 +6,40 @@
     <title>Admin - Gestion des utilisateurs</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 11px; margin: 5px; background: #fff; }
-        h3 { margin: 10px 0; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #f2f2f2; padding: 8px; border: 1px solid #ccc; font-weight: bold; }
-        td { padding: 8px; border: 1px solid #ccc; text-align: center; vertical-align: middle; }
+        body { font-family: Arial, sans-serif; font-size: 11px; margin: 5px; background: #fff; color: #333; }
+        h3 { margin: 10px 0; color: #000; }
         
-        .input-mini { width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; }
-        .btn-add { background: #28a745; color: white; border: none; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-weight: bold; }
-        .btn-rem { background: #fd7e14; color: white; border: none; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-weight: bold; margin-top: 2px; }
-        .btn-ban { background: #dc3545; color: white; border: none; padding: 6px; cursor: pointer; border-radius: 4px; width: 100%; }
+        /* Barre de recherche */
+        #search { width: 100%; max-width: 300px; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+        /* Style du tableau */
+        table { width: 100%; border-collapse: collapse; min-width: 600px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background: #f8f9fa; padding: 8px; border: 1px solid #ddd; font-weight: bold; text-transform: uppercase; font-size: 10px; }
+        td { padding: 8px; border: 1px solid #ddd; text-align: center; vertical-align: middle; background: #fff; }
         
-        .status-actif { color: green; font-weight: bold; }
-        .status-suspendu { color: red; font-weight: bold; }
+        /* Boutons et Inputs */
+        .input-mini { width: 55px; padding: 5px; border: 1px solid #ccc; border-radius: 3px; text-align: center; }
+        .btn-add { background: #28a745; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
+        .btn-rem { background: #fd7e14; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
+        .btn-ban { background: #dc3545; color: white; border: none; padding: 6px; cursor: pointer; border-radius: 4px; width: 80px; font-size: 10px; }
+        .btn-unban { background: #6c757d; color: white; border: none; padding: 6px; cursor: pointer; border-radius: 4px; width: 80px; font-size: 10px; }
+        
+        /* Statuts */
+        .status-actif { color: #28a745; font-weight: bold; }
+        .status-suspendu { color: #dc3545; font-weight: bold; }
         
         #loading-msg { padding: 20px; text-align: center; font-weight: bold; color: #666; }
+        .container { overflow-x: auto; }
     </style>
 </head>
 <body>
 
     <h3>Gestion des utilisateurs</h3>
-    <input type="text" id="search" onkeyup="filtrer()" placeholder="Rechercher numéro..." style="width:100%; max-width:300px; margin-bottom:15px; padding:10px; border: 1px solid #ccc;">
+    <input type="text" id="search" onkeyup="filtrer()" placeholder="Rechercher un numéro...">
 
-    <div id="loading-msg">Chargement des données Supabase...</div>
+    <div id="loading-msg">Connexion à Supabase en cours...</div>
 
-    <div style="overflow-x: auto;">
+    <div class="container">
         <table id="main-table" style="display:none;">
             <thead>
                 <tr>
@@ -41,7 +50,7 @@
                     <th>Statut</th>
                     <th>Crédit / Débit</th>
                     <th>VIP</th>
-                    <th>Bannir</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody id="user-table"></tbody>
@@ -49,25 +58,25 @@
     </div>
 
     <script>
+        // Tes identifiants intégrés
         const SUPABASE_URL = 'https://lnqmtqbxivjozhsysuse.supabase.co';
         const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxucW10cWJ4aXZqb3poc3lzdXNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMTIzNjYsImV4cCI6MjA5MzU4ODM2Nn0.98cTAWRd8101MYXd7JJrnGP_4pIT5gLMThULwSOJWl0';
+        
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function chargerUsers() {
-            console.log("Tentative de chargement...");
             const { data: users, error } = await _supabase
                 .from('utilisateurs')
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (error) {
-                document.getElementById('loading-msg').innerHTML = "❌ Erreur : " + error.message;
-                console.error(error);
+                document.getElementById('loading-msg').innerHTML = "❌ Erreur de clé ou de table : " + error.message;
                 return;
             }
 
             if (!users || users.length === 0) {
-                document.getElementById('loading-msg').innerHTML = "ℹ️ Aucune donnée trouvée dans la table 'utilisateurs'.";
+                document.getElementById('loading-msg').innerHTML = "ℹ️ Aucun utilisateur inscrit pour le moment.";
                 return;
             }
 
@@ -79,14 +88,13 @@
 
             users.forEach((u, index) => {
                 const row = document.createElement('tr');
-                const isSuspendu = (u.statut === 'Suspendu' || u.statut === 'refusé');
-                const userPhone = u.phone || "N/A";
-                const userSolde = u.solde !== undefined ? u.solde : 0;
+                const isSuspendu = (u.statut === 'Suspendu');
+                const userSolde = u.solde || 0;
                 
                 row.innerHTML = `
                     <td>${users.length - index}</td>
-                    <td><b>${userPhone}</b></td>
-                    <td>${userSolde} FCFA</td>
+                    <td><b>${u.phone || 'N/A'}</b></td>
+                    <td style="font-weight:bold;">${userSolde} FCFA</td>
                     <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}</td>
                     <td class="${isSuspendu ? 'status-suspendu' : 'status-actif'}">${u.statut || 'Actif'}</td>
                     <td>
@@ -95,7 +103,7 @@
                         <button class="btn-rem" onclick="modifierArgent('${u.id}', 'sub', ${userSolde})">-</button>
                     </td>
                     <td>
-                        <select onchange="changerVIP('${u.id}', this.value)" style="font-size:10px;">
+                        <select onchange="changerVIP('${u.id}', this.value)" style="padding:4px;">
                             <option value="VIP0" ${u.vip_level=='VIP0'?'selected':''}>VIP0</option>
                             <option value="VIP1" ${u.vip_level=='VIP1'?'selected':''}>VIP1</option>
                             <option value="VIP2" ${u.vip_level=='VIP2'?'selected':''}>VIP2</option>
@@ -103,8 +111,8 @@
                         </select>
                     </td>
                     <td>
-                        <button class="btn-ban" onclick="toggleBan('${u.id}', '${u.statut}')">
-                            ${isSuspendu ? 'Activer' : 'Suspendre'}
+                        <button class="${isSuspendu ? 'btn-unban' : 'btn-ban'}" onclick="toggleBan('${u.id}', '${u.statut}')">
+                            ${isSuspendu ? 'Réactiver' : 'Suspendre'}
                         </button>
                     </td>
                 `;
@@ -120,21 +128,19 @@
             const nouveauSolde = action === 'add' ? (soldeActuel + montant) : (soldeActuel - montant);
             const { error } = await _supabase.from('utilisateurs').update({ solde: nouveauSolde }).eq('id', id);
             
-            if (error) alert(error.message);
-            else chargerUsers();
+            if (error) alert("Erreur : " + error.message);
+            input.value = '';
         }
 
         async function changerVIP(id, level) {
             const { error } = await _supabase.from('utilisateurs').update({ vip_level: level }).eq('id', id);
             if (error) alert(error.message);
-            else alert("VIP mis à jour !");
         }
 
         async function toggleBan(id, statutActuel) {
             const nouveau = (statutActuel === 'Suspendu') ? 'Actif' : 'Suspendu';
             const { error } = await _supabase.from('utilisateurs').update({ statut: nouveau }).eq('id', id);
             if (error) alert(error.message);
-            else chargerUsers();
         }
 
         function filtrer() {
@@ -143,11 +149,11 @@
             trs.forEach(tr => tr.style.display = tr.innerText.toUpperCase().includes(val) ? "" : "none");
         }
 
-        // Initialisation
+        // Chargement initial
         chargerUsers();
         
-        // Realtime
-        _supabase.channel('users-admin').on('postgres_changes', { event: '*', schema: 'public', table: 'utilisateurs' }, () => {
+        // Mise à jour en temps réel
+        _supabase.channel('admin-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'utilisateurs' }, () => {
             chargerUsers();
         }).subscribe();
     </script>
