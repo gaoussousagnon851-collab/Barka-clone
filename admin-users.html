@@ -8,26 +8,17 @@
     <style>
         body { font-family: Arial, sans-serif; font-size: 11px; margin: 5px; background: #fff; color: #333; }
         h3 { margin: 10px 0; color: #000; }
-        
-        /* Barre de recherche */
         #search { width: 100%; max-width: 300px; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-
-        /* Style du tableau */
         table { width: 100%; border-collapse: collapse; min-width: 600px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         th { background: #f8f9fa; padding: 8px; border: 1px solid #ddd; font-weight: bold; text-transform: uppercase; font-size: 10px; }
         td { padding: 8px; border: 1px solid #ddd; text-align: center; vertical-align: middle; background: #fff; }
-        
-        /* Boutons et Inputs */
         .input-mini { width: 55px; padding: 5px; border: 1px solid #ccc; border-radius: 3px; text-align: center; }
         .btn-add { background: #28a745; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
         .btn-rem { background: #fd7e14; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
         .btn-ban { background: #dc3545; color: white; border: none; padding: 6px; cursor: pointer; border-radius: 4px; width: 80px; font-size: 10px; }
         .btn-unban { background: #6c757d; color: white; border: none; padding: 6px; cursor: pointer; border-radius: 4px; width: 80px; font-size: 10px; }
-        
-        /* Statuts */
         .status-actif { color: #28a745; font-weight: bold; }
         .status-suspendu { color: #dc3545; font-weight: bold; }
-        
         #loading-msg { padding: 20px; text-align: center; font-weight: bold; color: #666; }
         .container { overflow-x: auto; }
     </style>
@@ -37,7 +28,7 @@
     <h3>Gestion des utilisateurs</h3>
     <input type="text" id="search" onkeyup="filtrer()" placeholder="Rechercher un numéro...">
 
-    <div id="loading-msg">Connexion à Supabase en cours...</div>
+    <div id="loading-msg">Connexion avec clé de service...</div>
 
     <div class="container">
         <table id="main-table" style="display:none;">
@@ -58,9 +49,9 @@
     </div>
 
     <script>
-        // Tes identifiants intégrés
-        const SUPABASE_URL = 'https://lnqmtqbxivjozhsysuse.supabase.co';
-        const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxucW10cWJ4aXZqb3poc3lzdXNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMTIzNjYsImV4cCI6MjA5MzU4ODM2Nn0.98cTAWRd8101MYXd7JJrnGP_4pIT5gLMThULwSOJWl0';
+        // Configuration avec ta clé Service Role
+        const SUPABASE_URL = 'https://lnqmtqbxivjozhsysuse.supabase.co'.trim();
+        const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxucW10cWJ4aXZqb3poc3lzdXNlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODAxMjM2NiwiZXhwIjoyMDkzNTg4MzY2fQ.xxFNX8ZQKVlmJK1cG5Y9HvjvRDaJxGHna5mninnjd1k'.trim();
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -71,12 +62,13 @@
                 .order('created_at', { ascending: false });
 
             if (error) {
-                document.getElementById('loading-msg').innerHTML = "❌ Erreur de clé ou de table : " + error.message;
+                document.getElementById('loading-msg').innerHTML = "❌ Erreur : " + error.message;
+                console.error("Détails erreur:", error);
                 return;
             }
 
             if (!users || users.length === 0) {
-                document.getElementById('loading-msg').innerHTML = "ℹ️ Aucun utilisateur inscrit pour le moment.";
+                document.getElementById('loading-msg').innerHTML = "ℹ️ Aucun utilisateur trouvé.";
                 return;
             }
 
@@ -128,19 +120,21 @@
             const nouveauSolde = action === 'add' ? (soldeActuel + montant) : (soldeActuel - montant);
             const { error } = await _supabase.from('utilisateurs').update({ solde: nouveauSolde }).eq('id', id);
             
-            if (error) alert("Erreur : " + error.message);
-            input.value = '';
+            if (error) alert("Erreur modification : " + error.message);
+            else { input.value = ''; chargerUsers(); }
         }
 
         async function changerVIP(id, level) {
             const { error } = await _supabase.from('utilisateurs').update({ vip_level: level }).eq('id', id);
             if (error) alert(error.message);
+            else chargerUsers();
         }
 
         async function toggleBan(id, statutActuel) {
             const nouveau = (statutActuel === 'Suspendu') ? 'Actif' : 'Suspendu';
             const { error } = await _supabase.from('utilisateurs').update({ statut: nouveau }).eq('id', id);
             if (error) alert(error.message);
+            else chargerUsers();
         }
 
         function filtrer() {
@@ -149,11 +143,11 @@
             trs.forEach(tr => tr.style.display = tr.innerText.toUpperCase().includes(val) ? "" : "none");
         }
 
-        // Chargement initial
+        // Chargement immédiat
         chargerUsers();
         
-        // Mise à jour en temps réel
-        _supabase.channel('admin-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'utilisateurs' }, () => {
+        // Surveillance temps réel
+        _supabase.channel('admin-updates').on('postgres_changes', { event: '*', schema: 'public', table: 'utilisateurs' }, () => {
             chargerUsers();
         }).subscribe();
     </script>
