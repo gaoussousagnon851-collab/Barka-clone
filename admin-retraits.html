@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Retraits</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #fff; }
+        h2 { font-size: 1.5rem; margin-bottom: 20px; color: #000; }
+        
+        table { width: 100%; border-collapse: collapse; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        /* En-tête bleu comme sur la photo */
+        th { 
+            background-color: #007bff; 
+            color: white; 
+            padding: 12px; 
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+        
+        td { 
+            padding: 12px; 
+            text-align: center; 
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) { background-color: #f9f9f9; }
+
+        /* Liens d'action */
+        .action-link { text-decoration: underline; cursor: pointer; font-size: 13px; }
+        .valider { color: #0000EE; }
+        .refuser { color: #0000EE; }
+        .traite { color: #333; }
+    </style>
+</head>
+<body>
+
+    <h2>Liste des retraits</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Numéro</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <!-- Chargement... -->
+        </tbody>
+    </table>
+
+    <script>
+        const SUPABASE_URL = 'https://lnqmtqbxivjozhsysuse.supabase.co';
+        const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxucW10cWJ4aXZqb3poc3lzdXNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMTIzNjYsImV4cCI6MjA5MzU4ODM2Nn0.98cTAWRd8101MYXd7JJrnGP_4pIT5gLMThULwSOJWl0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function chargerRetraits() {
+            const { data: retraits, error } = await _supabase
+                .from('retraits')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) return console.error(error);
+            
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            retraits.forEach((r, index) => {
+                const row = document.createElement('tr');
+                // On affiche un index simple pour l'ID comme sur la photo
+                const displayId = retraits.length - index; 
+
+                row.innerHTML = `
+                    <td>${displayId}</td>
+                    <td>${r.phone_utilisateur}</td>
+                    <td>${parseFloat(r.montant).toFixed(1)}</td>
+                    <td>${r.statut}</td>
+                    <td>${new Date(r.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })}</td>
+                    <td>
+                        ${r.statut === 'en_attente' || r.statut === 'En attente' ? `
+                            <span class="action-link valider" onclick="majStatut('${r.id}', 'validé')">Valider</span>
+                            | 
+                            <span class="action-link refuser" onclick="majStatut('${r.id}', 'refusé')">Refuser</span>
+                        ` : '-'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function majStatut(id, nouveauStatut) {
+            if (!confirm(`Passer ce retrait en "${nouveauStatut}" ?`)) return;
+
+            const { error } = await _supabase
+                .from('retraits')
+                .update({ statut: nouveauStatut })
+                .eq('id', id);
+
+            if (error) alert("Erreur : " + error.message);
+            else chargerRetraits();
+        }
+
+        // Realtime pour mise à jour automatique
+        _supabase.channel('retraits-admin')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'retraits' }, () => {
+                chargerRetraits();
+            })
+            .subscribe();
+
+        chargerRetraits();
+    </script>
+</body>
+</html>
